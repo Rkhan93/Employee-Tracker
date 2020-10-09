@@ -78,7 +78,35 @@ function addDepartment() {
       type: "input",
       message: "Please enter the name of your new department",
     })
-    .then(function (answer) {});
+    .then(function (answer) {})
+
+      }
+    ])
+    .then(answers => {
+      // creat query connection to insert in to table
+      var query = connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answers.newDept
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.log(res.affectedRows + " New department inserted!\n");
+          
+          start();
+        }
+      );
+
+    })
+    .catch(error => {
+      if (error.isTtyError) {
+        console.log(error);
+      } else {
+        console.log(error);
+      }
+    });
+
+
 }
 
 // Function for user to ADD Role to their Database
@@ -147,35 +175,95 @@ function viewDepartments() {
   });
 }
 
-// Function to view Roles
+// view Employees ,Roles & Dept's
+
+function view() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "viewAction",
+        message: "What would you like to view?",
+        choices: [
+          "Employees",
+          "Roles",
+          "Departments",
+          "Total total utilized budget",
+          "View all"
+        ]
+
+      }
+    ])
+    .then(answers => {
+      switch (answers.viewAction) {
+        case "Employees":
+          viewEmployees();
+          break;
+        case "Roles":
+          viewRoles();
+          break;
+        case "Departments":
+          viewDepartments();
+          break;
+          case "Total total utilized budget":
+          viewBudget();
+          break;
+        default:
+          exit();
+
+      }
+    })
+    .catch(error => {
+      if (error.isTtyError) {
+        console.log(error);
+      } else {
+        console.log(error);
+      }
+    });
+
+}
+// function to veiw employees
+function viewEmployees() {
+  connection.query("SELECT employee.first_name, employee.last_name, employee.id, role.title, role.salary, role.department_id FROM employee INNER JOIN role on employee.role_id = role.department_id;", function (err, res) {
+    if (err) throw err;
+    // Log all results of the SELECT statement
+    console.table(res);
+    start();
+
+  });
+
+}
+// if user wants to view what roles
 function viewRoles() {
   connection.query("SELECT * FROM role", function (err, res) {
-    if (err) throw err;
+    //if (err) throw err;
 
     console.table(res);
-    start();
+    start()
+
   });
+
 }
 
-//Function to view Employees
-function viewEmployees() {
-  connection.query("SELECT * FROM employee", function (err, res) {
+function viewDepartments() {
+  connection.query("SELECT * FROM department", function (err, res) {
     if (err) throw err;
 
     console.table(res);
     start();
   });
+
 }
 
 //Function to update Employees & Roles
-/* function update() {
+function update() {
 
-                            connection.query("SELECT first_name FROM employee", function (err, res) {
-                                if (err) throw err;
+connection.query("SELECT first_name FROM employee", function (err, res) {
+     if (err) throw err;
 
-                                inquirer
-                                    .prompt([
-                                        {
-                                            type: "list",
-                                            name: "employee",
-                                            message: "Select which employee to update", */
+       inquirer
+       .prompt([
+        {
+        type: "list",
+        name: "employee",
+        message: "Select which employee to update", */
