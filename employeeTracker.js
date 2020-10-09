@@ -73,16 +73,16 @@ function start() {
 // Function for user to ADD Department to their Database
 function addDepartment() {
   inquirer
-    .prompt({
+    .prompt([
+      {
       name: "newDepartment",
       type: "input",
-      message: "Please enter the name of your new department",
-    })
-    .then(function (answer) {})
-
-      }
-    ])
-    .then(answers => {
+      message: "Please enter the name of your new department"
+   
+    }
+  ])
+  
+  .then(answers => {
       // creat query connection to insert in to table
       var query = connection.query(
         "INSERT INTO department SET ?",
@@ -107,7 +107,7 @@ function addDepartment() {
     });
 
 
-}
+
 
 // Function for user to ADD Role to their Database
 function addRole() {
@@ -258,12 +258,166 @@ function viewDepartments() {
 //Function to update Employees & Roles
 function update() {
 
-connection.query("SELECT first_name FROM employee", function (err, res) {
-     if (err) throw err;
-
-       inquirer
-       .prompt([
-        {
-        type: "list",
-        name: "employee",
-        message: "Select which employee to update", */
+  connection.query("SELECT first_name, id FROM employee", function (err, res) {
+            if (err) throw err;
+        
+            inquirer
+            .prompt([
+              {
+                type: "list",
+                name:"employee",
+                message: "Please select employee to update",
+                choices: res.map(emp => emp.id + " " + emp.first_name)
+              }
+            ])
+            .then(answers => {
+              changeRole(answers.employee);
+              
+          
+            })
+            .catch(error => {
+              if(error.isTtyError) {
+                
+              } else {
+                
+              }
+            });
+            
+        
+          });
+        
+        
+        } 
+        
+        function changeRole(name) {
+          connection.query("SELECT department_id  FROM role", function (err, res) {
+            if (err) throw err;
+            console.log(res);
+        
+            inquirer
+            .prompt([
+              {
+                type: "list",
+                name:"role",
+                message: "Please select desired role to update",
+                choices: res.map(role => role.department_id)
+              }
+            ])
+            .then(answers => {let sql = "UPDATE employee SET role_id = ? WHERE first_name = ?";
+            let role = parseInt(answers.role);
+            let data = [role, name];
+        
+        // execute the UPDATE statement
+        connection.query(sql, data, (error, results, fields) => {
+        if (error){
+        return console.error(error.message);
+        }
+          
+        });
+              
+        
+            })
+            .catch(error => {
+              if(error.isTtyError) {
+                
+              } else {
+                
+              }
+            });
+          });
+          start()
+        }
+        // if user wants remove
+        function remove() {
+          inquirer
+            .prompt([
+              {
+                type: "list",
+                name: "removeAction",
+                message: "What would you like to remove?",
+                choices: ["Employee", "Department", "Role"]
+              }
+            ])
+            .then(answers => {
+              switch (answers.removeAction) {
+                case "Employee":
+                  fireWho()
+                  break;
+                case "Department":
+                  findDepartment()
+                  break;
+                case "Role":
+                  findRole()
+                  break;
+                default: exit();
+        
+              }
+            })
+        
+        }
+        // if user wants to remove employee
+        function removeEmployee(exEmployee) {
+          
+          console.log("Promoting Employee to customer\n");
+          connection.query(
+            "DELETE FROM employee WHERE ?",
+            {
+              id: exEmployee
+            },
+            function(err, res) {
+              if (err) throw err;
+              console.log(res.affectedRows + " Employee is now a Consumer!\n");
+              start();
+             
+            }
+          );
+        }
+        
+        // if employee wants to remove employe from database
+        function fireWho() {
+        
+          // query to select from table in order to generate employees as choices
+          connection.query("SELECT id, first_name FROM employee", function (err, res) {
+            if (err) throw err;
+        
+            inquirer
+            .prompt([
+              {
+                type: "list",
+                name:"exEmployee",
+                message: "Please select employee to Fire",
+                choices: res.map(emp => emp.id + " " + emp.first_name)
+              }
+            ])
+            .then(answers => {
+              removeEmployee(answers.exEmployee)
+              
+          
+            })
+            .catch(error => {
+              if(error.isTtyError) {
+                
+              } else {
+                
+              }
+            });
+          });
+        }
+        
+        // if user wants to delete a department
+        function removeDep(oldDep) {
+          
+          console.log("Deleting department\n");
+          connection.query(
+            "DELETE FROM department WHERE ?",
+            {
+              name: oldDep
+            },
+            function(err, res) {
+              if (err) throw err;
+              console.log("Department removed!\n");
+              start();
+             
+            }
+          );
+          }
